@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DSNode<E> {
 
@@ -22,7 +23,7 @@ public class DSNode<E> {
 	 */
 	public DSNode(E thing, DSNode<E> parent) {
 		this.thing = thing;
-		children = Collections.newSetFromMap(new HashMap<>());
+		children = Collections.newSetFromMap(new ConcurrentHashMap<>());
 		this.parent = parent;
 	}
 
