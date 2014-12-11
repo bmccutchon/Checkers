@@ -5,11 +5,13 @@
 package framework;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 
 public class DSNode<E> {
 
-	private DSArrayList<DSNode<E>> children;
+	private Set<DSNode<E>> children;
 	private DSNode<E> parent;
 	private E thing;
 	
@@ -20,7 +22,7 @@ public class DSNode<E> {
 	 */
 	public DSNode(E thing, DSNode<E> parent) {
 		this.thing = thing;
-		children = new DSArrayList<DSNode<E>>();
+		children = Collections.newSetFromMap(new HashMap<>());
 		this.parent = parent;
 	}
 
@@ -55,8 +57,9 @@ public class DSNode<E> {
 		// return value. Starts at 1 for myself
 		BigInteger retVal = BigInteger.ONE;
 		
-		for(int i = 0; i < children.size(); i++)
-			retVal = retVal.add(children.get(i).sizeOfTree());
+		for(DSNode<E> child : children) {
+			retVal = retVal.add(child.sizeOfTree());
+		}
 		
 		sizeHash.put((DSNode<Object>) this, retVal);
 		System.out.println("Tree of size " + retVal);
@@ -87,8 +90,9 @@ public class DSNode<E> {
 		// Return value.
 		BigInteger retVal = BigInteger.ZERO;
 		
-		for(int i = 0; i < children.size(); i++)
-			retVal = retVal.add(children.get(i).countLeaves());
+		for(DSNode<E> child : children) {
+			retVal = retVal.add(child.countLeaves());
+		}
 		
 		leafHash.put((DSNode<Object>) this, retVal);
 		
@@ -108,7 +112,7 @@ public class DSNode<E> {
 	 * Gets the children of this node.
 	 * @return A DSArrayList containing the children. 
 	 */
-	public DSArrayList<DSNode<E>> returnChildren() {
+	public Set<DSNode<E>> returnChildren() {
 		return children;
 	}
 
@@ -170,8 +174,8 @@ public class DSNode<E> {
 		stack.add(thing);
 		
 		// Base case takes care of itself.
-		for (int i=0; i<children.size(); i++) {
-			children.get(i).linearizeTo(stack);
+		for (DSNode<E> child : children) {
+			child.linearizeTo(stack);
 		}
 		
 		return stack;
