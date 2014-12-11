@@ -5,6 +5,7 @@ package com.brianmccutchon.checkers;
  * preferences window is closed.
  * @author Brian McCutchon
  */
+@FunctionalInterface
 public interface PreferenceListener {
 	
 	public void finished(Preferences endstate);

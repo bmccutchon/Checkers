@@ -52,13 +52,10 @@ public class Preferences implements Serializable {
 		final Preferences[] prefs = new Preferences[1];
 		
 		PreferencesGUI gui = new PreferencesGUI(originalPrefs,
-				new PreferenceListener() {
-			@Override
-			public void finished(Preferences endstate) {
+			(endstate) -> {
 				holdForWindowClose.release();
 				prefs[0] = endstate;
-			}
-		});
+			});
 		
 		gui.setVisible(true);
 		
