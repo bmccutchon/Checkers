@@ -2,6 +2,9 @@ package framework;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * The top-level class of a framework for
@@ -15,6 +18,11 @@ import java.util.Map;
  */
 public abstract class Game<B> {
 	
+	/**
+	 * The number of levels deep to spawn threads.
+	 */
+	protected static final int THREAD_DEPTH = 3;
+
 	/**
 	 * The maximum depth of the game tree.
 	 */
@@ -147,16 +155,19 @@ public abstract class Game<B> {
 			// Get the children of this board.
 			// In the base case, there will be no children
 			DSArrayList<B> children = getChildren(b);
-			
-			for (int i = 0; i < children.size(); i++) {
-				root.addChild(buildTree(children.get(i), depth-1));
+
+			Stream<B> stream = children.stream();
+			if (maxTreeDepth - depth < THREAD_DEPTH - 1) {
+				stream = stream.parallel();
 			}
+			stream.map(c -> buildTree(c, depth - 1))
+					.forEach(root::addChild);
 		}
-		
+
 		synchronized (boardNodes) {
 			boardNodes.put(bh, root);
 		}
-		
+
 		return root;
 	}
 	
@@ -219,11 +230,15 @@ public abstract class Game<B> {
 		if(val != TwoPlayer.CONTINUE) {
 			rv = val;
 		} else {
-			DSArrayList<DSNode<B>> children =
-					node.returnChildren();
+			Set<DSNode<B>> children = node.returnChildren();
 
 			boolean drawIsPossible = false; // flag!
 			int turn = whoseTurn(node.returnThing());
+	
+			// TODO Bound max and make sure this works!
+			//Optional<Integer> maxScore = children.stream().parallel()
+			//		.map(c -> evaluateNode((DSGameNode<B>) c))
+			//		.max(Integer::compare);
 
 			for (int i=0; i<children.size(); i++) {
 				DSGameNode<B> c = (DSGameNode<B>) children.get(i);
@@ -240,6 +255,9 @@ public abstract class Game<B> {
 			}
 
 			if (rv == -99) {
+			//if (maxScore.isPresent()) {
+				//rv = maxScore.get();
+			//} else {
 				if (drawIsPossible) {
 					rv = TwoPlayer.DRAW;
 				} else if (turn == 1) {

@@ -6,6 +6,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 import framework.DSArrayList;
 import framework.DSNode;
@@ -968,21 +969,23 @@ public class Checkers extends TwoPlayer<byte[][]> {
 			return evaluateBoard(node.returnThing()) *
 					((isSuicideCheckers) ? 1 : -1);
 		else {
-			// Start at lowest possible value
-			int maxVal = Integer.MIN_VALUE;
+			Stream<DSNode<byte[][]>> stream = node.returnChildren().stream();
 
-			for (DSNode<byte[][]> n : node.returnChildren()) {
-				DSGameNode<byte[][]> childNode = (DSGameNode<byte[][]>) n;
-
-				int val = evaluateNode(childNode);
-
-				if (maxVal < val)
-					maxVal = val;
+			if (maxTreeDepth - getDepth(node.returnThing()) < THREAD_DEPTH-1) {
+				stream = stream.parallel();
 			}
+
+			int maxVal = stream
+					.map(c -> evaluateNode((DSGameNode<byte[][]>) c))
+					.max(Integer::compare).get();
 
 			// negate for the other player's benefit
 			return -maxVal;
 		}
+	}
+
+	private byte getDepth(byte[][] board) {
+		return board[0][1];
 	}
 
 	/**
