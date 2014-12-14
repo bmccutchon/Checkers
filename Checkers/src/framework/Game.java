@@ -234,14 +234,9 @@ public abstract class Game<B> {
 
 			boolean drawIsPossible = false; // flag!
 			int turn = whoseTurn(node.returnThing());
-	
-			// TODO Bound max and make sure this works!
-			//Optional<Integer> maxScore = children.stream().parallel()
-			//		.map(c -> evaluateNode((DSGameNode<B>) c))
-			//		.max(Integer::compare);
 
-			for (int i=0; i<children.size(); i++) {
-				DSGameNode<B> c = (DSGameNode<B>) children.get(i);
+			for (DSNode<B> child : children) {
+				DSGameNode<B> c = (DSGameNode<B>) child;
 				int childVal = evaluateNode(c);
 				if (childVal == TwoPlayer.PLAYER1WIN && turn == 1) {
 					rv = TwoPlayer.PLAYER1WIN;
@@ -255,9 +250,6 @@ public abstract class Game<B> {
 			}
 
 			if (rv == -99) {
-			//if (maxScore.isPresent()) {
-				//rv = maxScore.get();
-			//} else {
 				if (drawIsPossible) {
 					rv = TwoPlayer.DRAW;
 				} else if (turn == 1) {
