@@ -177,6 +177,16 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 */
 	public static final int ASCII_A = 65;
 
+	/**
+	 * The number of memos to store. If this limit is reached, old memos will
+	 * be deleted.
+	 */
+	private static final int NUM_MEMOS = 100_000;
+
+	/**
+	 * Creates a new Checkers game with the given preferences.
+	 * @param prefs The game settings
+	 */
 	public Checkers(Preferences prefs) {
 		// The board's width is cut in half to
 		// eliminate white squares, and its height
@@ -223,8 +233,8 @@ public class Checkers extends TwoPlayer<byte[][]> {
 		undoStack = new DSArrayList<byte[][]>();
 		undoStack.add(cloneBoard(board));
 
-		boardValues = new LimitedMap<>(4000);
-		boardNodes  = new LimitedMap<>(4000);
+		boardValues = new LimitedMap<>(NUM_MEMOS);
+		boardNodes  = new LimitedMap<>(NUM_MEMOS);
 
 		MemoryMXBean bean = ManagementFactory.getMemoryMXBean();
 		MemoryUsage usage = bean.getHeapMemoryUsage();
@@ -347,9 +357,12 @@ public class Checkers extends TwoPlayer<byte[][]> {
 
 		super.computerMove(turn);
 
-		MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
-		MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
-		System.out.println(heapUsage.getUsed() * 100 / heapUsage.getMax());
+		MemoryUsage heapUsage = ManagementFactory
+				.getMemoryMXBean().getHeapMemoryUsage();
+		System.out.println("Memory used: " +
+				heapUsage.getUsed() / 1_000_000 + "m");
+		
+		System.out.println("Number of memos: " + boardNodes.size());
 
 		/*DSArrayList<DSGameNode<byte[][]>> candidates =
 				new DSArrayList<DSGameNode<byte[][]>>();
