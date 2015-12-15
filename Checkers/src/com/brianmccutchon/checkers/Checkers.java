@@ -181,7 +181,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * The number of memos to store. If this limit is reached, old memos will
 	 * be deleted.
 	 */
-	private static final int NUM_MEMOS = 100_000;
+	private static final int NUM_MEMOS = 100_003;
 
 	/**
 	 * Creates a new Checkers game with the given preferences.
