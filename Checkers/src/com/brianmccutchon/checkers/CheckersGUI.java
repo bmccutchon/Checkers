@@ -1,21 +1,11 @@
 package com.brianmccutchon.checkers;
 
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Menu;
-import java.awt.MenuBar;
-import java.awt.MenuItem;
-import java.awt.Point;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.concurrent.Semaphore;
 
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 
 /**
  * Implements the game of checkers in a GUI.
@@ -116,8 +106,8 @@ public class CheckersGUI extends Checkers {
 		//new CheckersGUI();
 	}*/
 	
-	public CheckersGUI() {
-		super(Preferences.getPrefsGraphically());
+	public CheckersGUI(boolean applet) {
+		super(Preferences.load());
 		
 		gui = new JFrame();
 		
@@ -127,8 +117,10 @@ public class CheckersGUI extends Checkers {
 		// Lets the OS decide where to put the window
 		gui.setLocationByPlatform(true);
 		
-		// The app closes when the window closes.
-		gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		if (!applet) {
+			// The app closes when the window closes.
+			gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		}
 		
 		// TODO Add resize handler
 		//gui.setResizable(false);
@@ -302,7 +294,8 @@ public class CheckersGUI extends Checkers {
 			InstantiationException, IllegalAccessException,
 			UnsupportedLookAndFeelException {
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		new CheckersGUI();
+		new CheckersGUI(false);
+		//SwingUtilities.invokeLater(CheckersGUI::new);
 	}
 	
 	private class SquareListener implements ActionListener {

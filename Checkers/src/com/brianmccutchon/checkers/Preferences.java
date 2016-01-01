@@ -1,8 +1,6 @@
 package com.brianmccutchon.checkers;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.Semaphore;
@@ -82,16 +80,16 @@ public class Preferences implements Serializable {
 	}
 	
 	public static Preferences load() {
-		try {
-			ObjectInputStream ois = new ObjectInputStream(
-					new FileInputStream(SAVE_LOCATION));
-			Preferences p = (Preferences) ois.readObject();
-			ois.close();
-			return p;
-		} catch (Exception e) {
-			e.printStackTrace();
+		//try {
+		//	ObjectInputStream ois = new ObjectInputStream(
+		//			new FileInputStream(SAVE_LOCATION));
+		//	Preferences p = (Preferences) ois.readObject();
+		//	ois.close();
+		//	return p;
+		//} catch (Exception e) {
+		//	e.printStackTrace();
 			return DEFAULT_PREFS;
-		}
+		//}
 	}
 	
 }
