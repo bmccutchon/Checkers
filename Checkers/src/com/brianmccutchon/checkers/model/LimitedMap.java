@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;

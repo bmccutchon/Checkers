@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 /**
  * Describes a callback to be executed when the

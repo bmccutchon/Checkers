@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.viewcontroller;
 
 import javax.swing.JButton;
 

@@ -1,9 +1,11 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.concurrent.Semaphore;
+
+import com.brianmccutchon.checkers.viewcontroller.PreferencesGUI;
 
 public class Preferences implements Serializable {
 

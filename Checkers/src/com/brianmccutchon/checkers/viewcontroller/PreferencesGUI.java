@@ -1,4 +1,7 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.viewcontroller;
+
+import com.brianmccutchon.checkers.model.PreferenceListener;
+import com.brianmccutchon.checkers.model.Preferences;
 
 /**
  * The "preferences" window.

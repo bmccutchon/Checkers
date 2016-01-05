@@ -1,9 +1,12 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 import static org.junit.Assert.*;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.brianmccutchon.checkers.model.Checkers;
+import com.brianmccutchon.checkers.model.Preferences;
 
 public class CheckersTest {
 	

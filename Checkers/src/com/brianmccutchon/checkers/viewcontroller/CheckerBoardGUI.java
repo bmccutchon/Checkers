@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.viewcontroller;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -9,6 +9,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+
+import com.brianmccutchon.checkers.model.Checkers;
 
 /**
  * This panel holds the checkerboard and

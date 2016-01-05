@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.viewcontroller;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +6,10 @@ import java.awt.event.ActionListener;
 import java.util.concurrent.Semaphore;
 
 import javax.swing.*;
+
+import com.brianmccutchon.checkers.model.Checkers;
+import com.brianmccutchon.checkers.model.Move;
+import com.brianmccutchon.checkers.model.Preferences;
 
 /**
  * Implements the game of checkers in a GUI.

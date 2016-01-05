@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 import java.awt.Point;
 import java.lang.management.ManagementFactory;

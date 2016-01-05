@@ -1,4 +1,4 @@
-package com.brianmccutchon.checkers;
+package com.brianmccutchon.checkers.model;
 
 import java.awt.Point;
 import java.util.regex.Matcher;
@@ -12,19 +12,19 @@ import framework.DSArrayList;
  * @author Brian McCutchon
  * @version 0.1.0
  */
-class Move {
+public class Move {
 	
 	/**
 	 * The coordinates of the square from which we are moving.
 	 */
-	Point oldSquare;
+	public Point oldSquare;
 	
 	/**
 	 * Holds the coordinates of the squares to which the piece
 	 * will move. If this DSArrayList has move than one item,
 	 * the move involves multiple jumps.
 	 */
-	DSArrayList<Point> newSquares;
+	public DSArrayList<Point> newSquares;
 	
 	/**
 	 * Regex for parsing user input. Matches at least
