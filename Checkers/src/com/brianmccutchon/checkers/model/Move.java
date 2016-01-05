@@ -1,8 +1,6 @@
 package com.brianmccutchon.checkers.model;
 
 import java.awt.Point;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import framework.DSArrayList;
 
@@ -27,14 +25,6 @@ public class Move {
 	public DSArrayList<Point> newSquares;
 	
 	/**
-	 * Regex for parsing user input. Matches at least
-	 * four capturing groups, representing a player's move.
-	 */
-	private static final Pattern inputPattern = Pattern.compile(
-			"^\\s*([A-Z]+)\\s*(\\d+)(?:\\s*([A-Z]+)\\s*(\\d+))+\\s*$",
-			Pattern.CASE_INSENSITIVE);
-	
-	/**
 	 * 
 	 * @param x The column from which the piece is moving.
 	 * @param y The row from which the piece is moving.
@@ -43,74 +33,6 @@ public class Move {
 	public Move(int x, int y, Point... newSquares) {
 		oldSquare = new Point(x, y);
 		this.newSquares = new DSArrayList<Point>(newSquares);
-	}
-	
-	/**
-	 * Constructs a Move by parsing a String of human input.
-	 * Input is in the form <code>"" + oldFile + oldRank + " " +
-	 * newFile1 + newRank1 + " " + newFile2 + newRank2 ...</code>,
-	 * as described by {@link Move#inputPattern inputPattern},
-	 * where the files are letters, the ranks are one-based
-	 * numbers, and every file/rank pair after the second pair
-	 * (newFile1 + newRank1) represents a double jump (triple,
-	 * etc.).
-	 * @param humanMove the String to parse.
-	 * @throws IllegalArgumentException If input is invalid.
-	 */
-	public Move(String humanMove) throws IllegalArgumentException {
-		newSquares = new DSArrayList<Point>();
-		
-		Matcher match = inputPattern.matcher(humanMove);
-		if (match.find()) { // String consists of valid input
-			oldSquare = new Point(parseCol(match.group(1)),
-					parseRow(match.group(2)));
-			
-			// FIXME  Doesn't parse double-jumps correctly
-			for (int i = 3; i <= match.groupCount(); i += 2) {
-				newSquares.add(new Point(parseCol(match.group(i)),
-						parseRow(match.group(i+1))));
-			}
-		} else {
-			throw new IllegalArgumentException(
-				"Invalid input. Input must be in the following form:" +
-				"\n<startRow><startCol> <nextRow><nextCol> " +
-				"[<nextRow><nextCol> ...]");
-		}
-	}
-	
-	/**
-	 * Converts the given string into a number 
-	 * representing a rank on the board.
-	 * @param boardRank The string to parse.
-	 * @return The int in question.
-	 */
-	private int parseRow(String boardRank) {
-		return Checkers.HEIGHT - Integer.valueOf(boardRank);
-	}
-	
-	/**
-	 * Turns a String of letters into a number, such that
-	 * <code>"A" => 0, "B" => 1, "C" => 2, ... "Z" => 25,
-	 * "AA" => 26, "AB" => 27 ...</code> Case-insensitive.
-	 * @param boardFile The string to parse.
-	 * @return The int in question.
-	 */
-	int parseCol(String boardFile) {
-		boardFile = boardFile.toUpperCase(java.util.Locale.ENGLISH);
-		String base26 = "";
-		
-		// Convert to base-26 String
-		for (int i = 0; i < boardFile.length(); i++) {
-			int intVal = (int) boardFile.charAt(i);
-			
-			if (intVal < 10 + Checkers.ASCII_A)
-				base26 += intVal - Checkers.ASCII_A;
-			else
-				base26 += intVal - 10;
-		}
-		
-		// Parse the base-26 String
-		return Integer.valueOf(base26, 26);
 	}
 	
 	void toArrayIndices() {

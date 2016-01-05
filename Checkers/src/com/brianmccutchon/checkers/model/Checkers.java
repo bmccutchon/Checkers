@@ -5,7 +5,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.Arrays;
-import java.util.Scanner;
 import java.util.stream.Stream;
 
 import framework.DSArrayList;
@@ -60,19 +59,16 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	}
 
 	/**
-	 * Scanner for getting input.
-	 */
-	Scanner scan = new Scanner(System.in);
-
-	/**
 	 * The undo stack; holds boards for every other turn.
 	 */
-	protected DSArrayList<byte[][]> undoStack;
+	public DSArrayList<byte[][]> undoStack;
 
 	/**
 	 * The preferences of this game.
 	 */
 	private Preferences prefs;
+
+	private CheckersListener list;
 
 	/**
 	 * The height of the board, including white squares.
@@ -173,11 +169,6 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	public static final char ILLEGAL_SQUARE = ' ';
 
 	/**
-	 * The ASCII value of <code>'A'</code>.
-	 */
-	public static final int ASCII_A = 65;
-
-	/**
 	 * The number of memos to store. If this limit is reached, old memos will
 	 * be deleted.
 	 */
@@ -187,7 +178,9 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * Creates a new Checkers game with the given preferences.
 	 * @param prefs The game settings
 	 */
-	public Checkers(Preferences prefs) {
+	public Checkers(Preferences prefs, CheckersListener list) {
+		this.list = list;
+
 		// The board's width is cut in half to
 		// eliminate white squares, and its height
 		// is increased by one to accommodate metadata.
@@ -257,25 +250,6 @@ public class Checkers extends TwoPlayer<byte[][]> {
 		}
 	}
 
-	// TODO Remove after debugging
-	public static void drawBoard(byte[][] board) {
-		System.out.println();
-		for (int row = 1; row <= HEIGHT; row++) {
-			if (row % 2 == 1) // Odd numbered row
-				System.out.print(" " + ILLEGAL_SQUARE);
-			for (int col = 0; col < WIDTH / 2; col++)
-				System.out.print(" " + board[row][col] +
-					((col == WIDTH/2-1 && row % 2 == 1) ?
-							"" : " " + ILLEGAL_SQUARE));
-			System.out.println(" " + (HEIGHT - row + 1));
-		}
-		for (int col = 0; col < WIDTH; col++) {
-			System.out.print(" " + intToAlphaString(col));
-		}
-
-		System.out.println();
-	}
-
 	/**
 	 * Determines whether a given move is legal.
 	 * @param m
@@ -295,18 +269,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @see Checkers#humanMove(int)
 	 */
 	protected Move getHumanMove() {
-		if (scan.hasNextLine()) {
-			try {
-				return new Move(scan.nextLine());
-			} catch(IllegalArgumentException e) {
-				// The user gave invalid input
-				System.out.println(e.getMessage());
-				return getHumanMove(); // recurse
-			}
-		} else { // End of input
-			System.exit(0); // Quit the program
-			return null; // Probably unreachable, but makes the compiler happy
-		}
+		return list.getHumanMove();
 	}
 
 	/**
@@ -317,7 +280,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @see Checkers#humanMove(int)
 	 */
 	protected void tellUserMoveIsInvalid() {
-		System.out.println("Sorry, that move is illegal.");
+		list.invalidMove();
 	}
 
 	/*
@@ -341,18 +304,6 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	protected void computerMove(int turn) {
 		undoStack.add(board);
 
-		/*int numPieces = 0;
-		for (int row = 1; row < board.length; row++) {
-			for (int col = 0; col < board[row].length; col++) {
-				if (board[row][col] != UNOCCUPIED_SQUARE) {
-					numPieces++;
-				}
-			}
-		}
-		if (numPieces < 5) {
-			maxTreeDepth = 20;
-		}*/
-
 		board[0][1] = maxTreeDepth;
 
 		super.computerMove(turn);
@@ -363,33 +314,6 @@ public class Checkers extends TwoPlayer<byte[][]> {
 				heapUsage.getUsed() / 1_000_000 + "m");
 		
 		System.out.println("Number of memos: " + boardNodes.size());
-
-		/*DSArrayList<DSGameNode<byte[][]>> candidates =
-				new DSArrayList<DSGameNode<byte[][]>>();
-
-		int topValue = Integer.MIN_VALUE;
-
-		DSArrayList<byte[][]> children = getChildren(board);
-
-		// If there's only one move, take it.
-		if (children.size() == 1) {
-			board = children.get(0);
-			return;
-		}
-
-		for (byte[][] b : children) {
-			DSGameNode<byte[][]> node = buildTree(b);
-			int val = evaluateNode(node);
-			if (val > topValue) {
-				topValue = val;
-				candidates = new DSArrayList<DSGameNode<byte[][]>>();
-				candidates.add(node);
-			} else if (val == topValue)
-				candidates.add(node);
-		}
-
-		board = cloneBoard((byte[][]) candidates.get(
-				(int)(Math.random() * candidates.size())).returnThing());*/
 	}
 
 	/**
@@ -463,21 +387,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 
 	@Override
 	protected void drawBoard() {
-		System.out.println();
-		for (int row = 1; row <= HEIGHT; row++) {
-			if (row % 2 == 1) // Odd numbered row
-				System.out.print(" " + ILLEGAL_SQUARE);
-			for (int col = 0; col < WIDTH / 2; col++)
-				System.out.print(" " + board[row][col] +
-					((col == WIDTH/2-1 && row % 2 == 1) ?
-							"" : " " + ILLEGAL_SQUARE));
-			System.out.println(" " + (HEIGHT - row + 1));
-		}
-		for (int col = 0; col < WIDTH; col++) {
-			System.out.print(" " + intToAlphaString(col));
-		}
-
-		System.out.println();
+		list.boardChanged(board);
 	}
 
 	@Override
@@ -1048,20 +958,6 @@ public class Checkers extends TwoPlayer<byte[][]> {
 				(b[row+1+deltaY][(col+deltaX)/2] == oppKing ||
 				b[row+1+deltaY][(col+deltaX)/2] == oppPawn)
 				&& b[row+1+deltaY*2][(col+deltaX*2)/2] == UNOCCUPIED_SQUARE;
-	}
-
-	/**
-	 * Converts an int into a String, such that
-	 * <code>0 => "A", 1 => "B", 2 => "C", ... 25 => "Z",
-	 * 26 => "AA", 27 => "AB" ...</code>
-	 * 
-	 * XXX Currently doesn't work for numbers bigger than 25
-	 * @param toConvert The <code>int</code> to convert.
-	 * @return The <code>String</code> in question.
-	 * @see Move#parseCol(String)
-	 */
-	static String intToAlphaString(int toConvert) {
-		return "" + (char)(toConvert + ASCII_A);
 	}
 
 }
