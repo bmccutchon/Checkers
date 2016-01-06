@@ -16,7 +16,11 @@ public class CheckersTest {
 	byte r = Checkers.P2_PAWN;
 	byte R = Checkers.P2_KING;
 	
-	Checkers c = new Checkers(new Preferences(7, true, true, "Normal"));
+	Checkers c = new Checkers(new Preferences(7, true, true, "Normal"), new CheckersListener() {
+		public void invalidMove() { }
+		public Move getHumanMove() { return null; }
+		public void boardChanged(byte[][] board) { }
+	});
 	
 	@Test
 	public void testEvaluateBoard() {

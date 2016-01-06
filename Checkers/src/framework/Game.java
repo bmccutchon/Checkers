@@ -52,7 +52,7 @@ public abstract class Game<B> {
 	/**
 	 * The current game board.
 	 */
-	protected B board;
+	public B board;
 	
 	/**
 	 * Executes the turn of a player.
@@ -130,8 +130,9 @@ public abstract class Game<B> {
 	 */
 	protected abstract int endCheck();
 
-	/** Call this method to start a game. */
-	protected abstract void play();
+	/** Call this method to start a game. 
+	 * @return */
+	protected abstract int play();
 	
 	/**
 	 * Builds a game tree given a board.

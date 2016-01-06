@@ -64,9 +64,10 @@ public abstract class TwoPlayer<B> extends Game<B> {
 	 * this method can be called more than once per instance.
 	 * However, implementors should usually call this method
 	 * via <code>super.play();</code>.
+	 * @return 
 	 * @see TwoPlayer#computerPlaySelf()
 	 */
-	public void play() {
+	public int play() {
 		getHumanOrComputer();
 		
 		whoseTurn = 1;
@@ -84,6 +85,8 @@ public abstract class TwoPlayer<B> extends Game<B> {
 			System.out.println("Player 1 is the winner!");
 		if(endstate == PLAYER2WIN)
 			System.out.println("Player 2 is the winner!");
+
+		return endstate;
 	}
 
 	/**

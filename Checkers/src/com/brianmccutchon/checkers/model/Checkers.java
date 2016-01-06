@@ -61,7 +61,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	/**
 	 * The undo stack; holds boards for every other turn.
 	 */
-	public DSArrayList<byte[][]> undoStack;
+	public DSArrayList<byte[][]> undoStack = new DSArrayList<>();
 
 	/**
 	 * The preferences of this game.
@@ -189,39 +189,13 @@ public class Checkers extends TwoPlayer<byte[][]> {
 		maxTreeDepth = (byte) prefs.treeDepth;
 		isSuicideCheckers = (prefs.modeName == "Suicide");
 		this.prefs = prefs;
+
+		setBoard();
 	}
 
 	@Override
-	public void play() {
-		for (int i = 1; i<=HEIGHT; i++) {
-			if (i <= NUM_RANKS) { // fill the p2 pieces
-				Arrays.fill(board[i], P2_PAWN);
-			} else if (i-1 >= HEIGHT - NUM_RANKS) { // p1 pieces
-				Arrays.fill(board[i], P1_PAWN);
-			} else { // unoccupied squares
-				Arrays.fill(board[i], UNOCCUPIED_SQUARE);
-			}
-		}
-
-		/*byte _ = Checkers.UNOCCUPIED_SQUARE;
-		byte b = Checkers.P1_PAWN;
-		byte B = Checkers.P1_KING;
-		byte r = Checkers.P2_PAWN;
-		byte R = Checkers.P2_KING;
-
-		board = new byte[][]{
-				{b, 0, 0, 0},
-				{   B , B , B , _ },
-				{ _ , _ , _ , _   },
-				{   _ , _ , _ , _ },
-				{ _ , _ , _ , _   },
-				{   _ , _ , _ , _ },
-				{ _ , _ , _ , _   },
-				{   _ , _ , _ , _ },
-				{ _ , R , R , R   },
-		};*/
-
-		board[0][0] = P1_PAWN; // It is player one's turn
+	public int play() {
+		setBoard();
 
 		undoStack = new DSArrayList<byte[][]>();
 		undoStack.add(cloneBoard(board));
@@ -233,7 +207,22 @@ public class Checkers extends TwoPlayer<byte[][]> {
 		MemoryUsage usage = bean.getHeapMemoryUsage();
 		System.out.println(usage.getMax() / 1000);
 
-		super.play();
+		return super.play();
+	}
+
+	/** Gets the board ready for a new game. **/
+	private void setBoard() {
+		for (int i = 1; i<=HEIGHT; i++) {
+			if (i <= NUM_RANKS) { // fill the p2 pieces
+				Arrays.fill(board[i], P2_PAWN);
+			} else if (i-1 >= HEIGHT - NUM_RANKS) { // p1 pieces
+				Arrays.fill(board[i], P1_PAWN);
+			} else { // unoccupied squares
+				Arrays.fill(board[i], UNOCCUPIED_SQUARE);
+			}
+		}
+
+		board[0][0] = P1_PAWN; // It is player one's turn
 	}
 
 	@Override
@@ -257,7 +246,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @return
 	 *   <code>true</code> if <code>m</code> is legal.
 	 */
-	protected boolean moveIsLegal(Move m) {
+	private boolean moveIsLegal(Move m) {
 		return getLegalMoves(board).contains(m);
 	}
 
@@ -268,7 +257,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @return A Move with 0-based coordinates on the board.
 	 * @see Checkers#humanMove(int)
 	 */
-	protected Move getHumanMove() {
+	private Move getHumanMove() {
 		return list.getHumanMove();
 	}
 
@@ -324,7 +313,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 *   <code>true</code> if this move ends the turn. If so, the method changes
 	 *   whose turn it is and performs a coronation if necessary.
 	 */
-	protected static void makeMove(Move move,
+	public static void makeMove(Move move,
 			byte[][] board, boolean endOfTurn) {
 		move.toArrayIndices();
 		byte piece = board[move.oldSquare.y][move.oldSquare.x];
@@ -696,7 +685,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @param col The column of the piece in question.
 	 * @return A DSArrayList containing Moves.
 	 */
-	protected static DSArrayList<Move> getJumps(
+	public static DSArrayList<Move> getJumps(
 			byte[][] b, int row, int col) {
 		switch (b[row+1][col/2]) {
 			case P1_PAWN: return getJumps(b, row, col, true);
@@ -710,13 +699,18 @@ public class Checkers extends TwoPlayer<byte[][]> {
 
 	}
 
+	@Override
+	protected byte[][] cloneBoard(byte[][] b) {
+		return cloneBoardStatic(b);
+	}
+	
 	/**
-	 * Creates a new copy of the board that
-	 * shares no references with the old board.
+	 * Creates a new copy of the board that shares no references with the old
+	 * board.
 	 * @param b The board to clone.
 	 * @return A "deep" copy of the board.
 	 */
-	protected byte[][] cloneBoard(byte[][] b) {
+	public static byte[][] cloneBoardStatic(byte[][] b) {
 		byte[][] newBoard = new byte[HEIGHT+1][WIDTH/2];
 
 		for (int i = 0; i < newBoard.length; i++) {
@@ -916,7 +910,7 @@ public class Checkers extends TwoPlayer<byte[][]> {
 	 * @return Whether or not a jump is possible by the 
 	 * player whose turn it is on the board provided.
 	 */
-	protected static boolean jumpIsPossible(byte[][] b) {
+	public static boolean jumpIsPossible(byte[][] b) {
 
 		for (int row = 0; row < HEIGHT; row++) {
 			// The count starts at one for odd rows or zero for even rows
@@ -958,6 +952,28 @@ public class Checkers extends TwoPlayer<byte[][]> {
 				(b[row+1+deltaY][(col+deltaX)/2] == oppKing ||
 				b[row+1+deltaY][(col+deltaX)/2] == oppPawn)
 				&& b[row+1+deltaY*2][(col+deltaX*2)/2] == UNOCCUPIED_SQUARE;
+	}
+
+	/**
+	 * "Undo" a move by going back two boards if possible. If there is only one
+	 * board on the undo stack, this method will only go back one board.
+	 */
+	public void undo() {
+		if (!hasUndo()) {
+			throw new IllegalStateException("No undo items");
+		}
+
+		if (undoStack.size() != 1) { // go back two boards
+			undoStack.pop(); 
+		}
+
+		board = undoStack.pop();
+
+		drawBoard();
+	}
+
+	public boolean hasUndo() {
+		return undoStack.size() != 0;
 	}
 
 }

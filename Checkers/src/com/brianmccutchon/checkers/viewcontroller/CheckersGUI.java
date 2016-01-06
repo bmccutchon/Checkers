@@ -8,15 +8,20 @@ import java.util.concurrent.Semaphore;
 import javax.swing.*;
 
 import com.brianmccutchon.checkers.model.Checkers;
+import com.brianmccutchon.checkers.model.CheckersListener;
 import com.brianmccutchon.checkers.model.Move;
 import com.brianmccutchon.checkers.model.Preferences;
+
+import framework.TwoPlayer;
 
 /**
  * Implements the game of checkers in a GUI.
  * @author Brian McCutchon
  * @version 0.1.0
  */
-public class CheckersGUI extends Checkers {
+public class CheckersGUI extends JPanel {
+
+	private static final long serialVersionUID = 8116491705672788524L;
 
 	/**
 	 * The length of a side of a square on the board.
@@ -73,23 +78,14 @@ public class CheckersGUI extends Checkers {
 	 */
 	Point lastClicked = new Point();
 
+	private Checkers checkers;
+
 	public void undo(ActionEvent e) {
-		if (undoStack.size() == 0) { // redundant case
-			undoItem.setEnabled(false);
-			return;
-		}
-
-		if (undoStack.size() != 1) { // go back two boards
-			undoStack.pop(); 
-		}
-
-		board = undoStack.pop();
-
-		if (undoStack.size() == 0) {
+		if (checkers.hasUndo()) {
+			checkers.undo();
+		} else { // redundant case
 			undoItem.setEnabled(false);
 		}
-
-		drawBoard();
 	}
 
 	private MenuItem undoItem;
@@ -99,6 +95,9 @@ public class CheckersGUI extends Checkers {
 	 * If so, the dark square buttons will respond to button presses.
 	 */
 	private boolean isAcceptingInput = false;
+
+	/** The current checkerboard **/
+	public byte[][] board;
 	
 	/*
 	 * ActionListener that starts a new game.
@@ -111,9 +110,9 @@ public class CheckersGUI extends Checkers {
 	}*/
 	
 	public CheckersGUI(boolean applet) {
-		super(Preferences.load());
-		
+		checkers = new Checkers(Preferences.load(), new CheckersGUIListener());
 		gui = new JFrame();
+		board = checkers.board;
 		
 		//gui.setUndecorated(true);
 		//gui.setBackground(new Color(0, 0, 0, 0));
@@ -131,15 +130,17 @@ public class CheckersGUI extends Checkers {
 		
 		// Create the board
 		boardGUI = new CheckerBoardGUI();
-		boardGUI.setPreferredSize(new Dimension(WIDTH * SQUARE_SIZE, HEIGHT * SQUARE_SIZE));
-		boardGUI.setLayout(new GridLayout(HEIGHT, WIDTH)); // Absolute positioning
+		boardGUI.setPreferredSize(new Dimension(Checkers.WIDTH * SQUARE_SIZE,
+				Checkers.HEIGHT * SQUARE_SIZE));
+		boardGUI.setLayout(new GridLayout(Checkers.HEIGHT, Checkers.WIDTH)); // Absolute positioning
+		boardGUI.drawBoard(board);
 
 		gui.add(boardGUI);
 		
-		squares = new JButton[HEIGHT][WIDTH];
+		squares = new JButton[Checkers.HEIGHT][Checkers.WIDTH];
 		
-		for (int row = 0; row < HEIGHT; row++) {
-			for (int col = 0; col < WIDTH; col++) {
+		for (int row = 0; row < Checkers.HEIGHT; row++) {
+			for (int col = 0; col < Checkers.WIDTH; col++) {
 				squares[row][col] = new JButton();
 				squares[row][col].addActionListener(new SquareListener(col, row));
 				
@@ -197,56 +198,14 @@ public class CheckersGUI extends Checkers {
 		
 		gui.setVisible(true);
 		
-		play();
+		int endstate = checkers.play();
 		
-		if (endstate == PLAYER1WIN)
+		if (endstate == TwoPlayer.PLAYER1WIN)
 			gui.setTitle("Black wins!");
 		else
 			gui.setTitle("Red wins!");
 	}
 
-	@Override
-	protected Move getHumanMove() {
-		this.isAcceptingInput = true;
-		
-		waitForHuman();
-		
-		byte myKing = (board[0][0] == P1_PAWN) ? P1_KING : P2_KING;
-		if (board[lastClicked.y + 1][lastClicked.x / 2] != board[0][0] &&
-				board[lastClicked.y + 1][lastClicked.x / 2] != myKing) {
-			tellUserMoveIsInvalid();
-			return getHumanMove();
-		}
-		
-		Move m = new Move(lastClicked.x, lastClicked.y);
-		
-		Point oldSquare = m.oldSquare;
-		boolean canJump;
-		
-		do { // Get multiple jumps
-			waitForHuman();
-			// Creating new Point instance
-			Point newSquare = new Point(lastClicked);
-			m.newSquares.add(newSquare);
-			
-			byte[][] newBoard = cloneBoard(board);
-			
-			makeMove(m, newBoard, false);
-			
-			// canJump is set to true if a jump is possible 
-			// and the last move was a jump.
-			canJump = Math.abs(oldSquare.x - newSquare.x) == 2 &&
-					Math.abs(oldSquare.y - newSquare.y) == 2 &&
-					getJumps(newBoard, newSquare.y, newSquare.x).size() != 0;
-			
-			oldSquare = newSquare;
-		} while (canJump);
-		
-		this.isAcceptingInput = false;
-		
-		return m;
-	}
-	
 	/**
 	 * Acquires a permit from the {@link #holdForHuman}
 	 * Semaphore, with error handling.
@@ -260,32 +219,6 @@ public class CheckersGUI extends Checkers {
 		}
 	}
 
-	@Override
-	protected void tellUserMoveIsInvalid() {
-		Toolkit.getDefaultToolkit().beep();
-	}
-
-	@Override
-	protected void drawBoard() {
-		boardGUI.drawBoard(board);
-		
-		/*
-		for (int row = 0; row < squares.length; row++) {
-			// The count starts at one for odd rows or zero for even rows
-			// and increases by 2 in order to skip light squares.
-			for (int col = 1-row%2; col < squares[row].length; col+=2) {
-				squares[row][col].setText("" + board[row+1][col/2]);
-			}
-		}*/
-		
-		gui.setTitle((board[0][0] == P1_PAWN) ?
-				"Black's turn" : "Red's turn");
-		
-		if (undoStack.size() != 0) {
-			undoItem.setEnabled(true);
-		}
-	}
-	
 	/**
 	 * Creates a new CheckersGUI instance.
 	 * @param args
@@ -323,7 +256,7 @@ public class CheckersGUI extends Checkers {
 				}
 			} else { // Light square
 				if (lastClicked.x == 0 && lastClicked.y == 0) {
-					if (y == HEIGHT - 1 && x == WIDTH - 1) {
+					if (y == Checkers.HEIGHT - 1 && x == Checkers.WIDTH - 1) {
 						boardGUI.easterEggEnabled = true;
 						boardGUI.repaint();
 					}
@@ -336,4 +269,70 @@ public class CheckersGUI extends Checkers {
 
 	}
 	
+	private class CheckersGUIListener implements CheckersListener {
+
+		@Override
+		public void invalidMove() {
+			Toolkit.getDefaultToolkit().beep();
+		}
+
+		@Override
+		public Move getHumanMove() {
+			isAcceptingInput = true;
+
+			waitForHuman();
+
+			byte myKing = (board[0][0] == Checkers.P1_PAWN) ?
+					Checkers.P1_KING : Checkers.P2_KING;
+			if (board[lastClicked.y + 1][lastClicked.x / 2] != board[0][0] &&
+					board[lastClicked.y + 1][lastClicked.x / 2] != myKing) {
+				Toolkit.getDefaultToolkit().beep();
+				return getHumanMove();
+			}
+
+			Move m = new Move(lastClicked.x, lastClicked.y);
+
+			Point oldSquare = m.oldSquare;
+			boolean canJump;
+
+			do { // Get multiple jumps
+				waitForHuman();
+				// Creating new Point instance
+				Point newSquare = new Point(lastClicked);
+				m.newSquares.add(newSquare);
+
+				byte[][] newBoard = Checkers.cloneBoardStatic(board);
+
+				Checkers.makeMove(m, newBoard, false);
+
+				// canJump is set to true if a jump is possible 
+				// and the last move was a jump.
+				canJump = Math.abs(oldSquare.x - newSquare.x) == 2 &&
+						Math.abs(oldSquare.y - newSquare.y) == 2 &&
+						Checkers.getJumps(newBoard, newSquare.y, newSquare.x)
+								.size() != 0;
+
+				oldSquare = newSquare;
+			} while (canJump);
+
+			isAcceptingInput = false;
+
+			return m;
+		}
+
+		@Override
+		public void boardChanged(byte[][] board) {
+			CheckersGUI.this.board = board;
+			SwingUtilities.invokeLater(() -> {
+				boardGUI.drawBoard(board);
+
+				gui.setTitle((board[0][0] == Checkers.P1_PAWN) ?
+						"Black's turn" : "Red's turn");
+
+				undoItem.setEnabled(checkers.hasUndo());
+			});
+		}
+
+	}
+
 }
